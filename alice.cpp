@@ -1,9 +1,13 @@
 /* --------------- Alice -----------------------*/
 #include "includes.h"
 
+
+
+
 #define ALICE_PORT 1111
 #define CAROL_PORT 2222
 #define BOB_PORT 3333
+
 
 /* ---------- Synchronization Variables --------*/
 float state_A = 0;
@@ -78,10 +82,24 @@ int main(int argc, char* argv[])
 	server_thread.join();
 	client_thread.join();
 
+int main()
+{
+	char ip[] = "127.0.0.1";
+	std::thread server_thread(server, ALICE_PORT);
+	std::thread client_thread_1(client, ip, CAROL_PORT);
+	std::thread client_thread_2(client, ip, BOB_PORT);
+
+	server_thread.join();
+	client_thread_1.join();
+	client_thread_2.join();
+
+
+	return 1;
 
 	return 1;
 
 }
+
 
 
 /*---------------- Subroutines ----------------*/
@@ -175,3 +193,5 @@ void client(char *ip, int portno, char op)
 	}
 	close(sockfd);
 }
+=======
+
