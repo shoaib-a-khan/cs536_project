@@ -174,4 +174,5 @@ void client(char *ip, int portno, char op)
 		printf("%s\n", buffer);
 	}
 	close(sockfd);
+
 }
