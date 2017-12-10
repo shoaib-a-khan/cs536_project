@@ -139,7 +139,7 @@ int server(int portno, char op)
 
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0)
-		printf("ERROR opening socket");
+		printf("ERROR opening server socket in Bob!\n");
 	bzero((char *)&serv_addr, sizeof(serv_addr));
 	//portno = atoi(argv[1]);
 	serv_addr.sin_family = AF_INET;
@@ -147,7 +147,7 @@ int server(int portno, char op)
 	serv_addr.sin_port = htons(portno);
 	if (bind(sockfd, (struct sockaddr *) &serv_addr,
 		sizeof(serv_addr)) < 0)
-		printf("ERROR on binding");
+		printf("ERROR on binding server socket in Bob!\n");
 
 	listen(sockfd, 5);
 	clilen = sizeof(cli_addr);
@@ -156,7 +156,7 @@ int server(int portno, char op)
 		&clilen);
 	if (newsockfd < 0)
 	{
-		printf("ERROR on accept at Alice's Server!");
+		printf("ERROR on accept at Bob's Server!");
 		return 1;
 	}
 	while (!terminate_server)
@@ -166,14 +166,14 @@ int server(int portno, char op)
 			n = write(newsockfd, &msg_for_Carol, sizeof(msg_for_Carol));
 			send_to_Carol = 0;
 			if (n < 0)
-				printf("ERROR in Bob writing to Carol's socket");
+				printf("ERROR in Bob writing to Carol's socket!\n");
 
 		}
 		if (rcv_from_Carol)
 		{
 			n = read(sockfd, &msg_from_Carol, sizeof(msg_from_Carol));
 			if (n < 0)
-				printf("ERROR in Bob reading from Alice's socket");
+				printf("ERROR in Bob reading from Alice's socket!\n");
 			else
 			{
 				server_rcv = 1;
@@ -199,10 +199,10 @@ void client(char *ip, int portno, char op)
 	char buffer[256];
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0)
-		printf("ERROR opening socket");
+		printf("ERROR opening client socket in Bob!\n");
 	server = gethostbyname(ip);
 	if (server == NULL) {
-		fprintf(stderr, "ERROR, no such host\n");
+		fprintf(stderr, "ERROR, no such host(Alice is not live!)\n");
 		//exit(0);
 	}
 	bzero((char *)&serv_addr, sizeof(serv_addr));
@@ -212,7 +212,7 @@ void client(char *ip, int portno, char op)
 		server->h_length);
 	serv_addr.sin_port = htons(portno);
 	if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
-		printf("ERROR connecting");
+		printf("ERROR connecting Bob to Alice!\n");
 	while (!terminate_client)
 	{
 		if (send_to_Alice)
@@ -220,13 +220,13 @@ void client(char *ip, int portno, char op)
 			n = write(sockfd, &msg_for_Alice, sizeof(msg_for_Alice));
 			send_to_Alice = 0;
 			if (n < 0)
-				printf("ERROR writing to socket");
+				printf("ERROR writing to client socket in Bob!\n");
 		}
 		if (rcv_from_Alice)
 		{
 			n = read(sockfd, &msg_from_Alice, sizeof(msg_from_Alice));
 			if (n < 0)
-				printf("ERROR reading from socket");
+				printf("ERROR reading from client socket in Bob!\n");
 			else
 			{
 				client_rcv = 1;
