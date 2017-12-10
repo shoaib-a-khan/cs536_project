@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
 
 
 	}
-	else if (strcmp(argv[1], ">") == 0)		//Oblivious Comparison
+	else if (strcmp(argv[1], ">") == 0)		//Oblivious Multiplication
 	{
 
 	}
@@ -186,7 +186,7 @@ int server(int portno, char op)
 
 		}
 
-		sleep(1);
+		//sleep(1);
 	}
 	close(newsockfd);
 	close(sockfd);
@@ -204,7 +204,7 @@ void client(char *ip, int portno, char op)
 	//portno = atoi(argv[2]);
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0)
-		printf("ERROR opening socket client socket in Alice!\n");
+		printf("ERROR opening client socket in Alice!\n");
 	server = gethostbyname(ip);
 	if (server == NULL) {
 		fprintf(stderr, "ERROR, no such host(Carol is not live)!\n");
@@ -228,11 +228,17 @@ void client(char *ip, int portno, char op)
 			if (n < 0)
 				printf("ERROR writing to client socket in Alice!\n");
 		}
-		n = read(sockfd, &msg_from_Carol, sizeof(msg_from_Carol));
-		if (n < 0)
-			printf("ERROR reading from socket client socket in Alice!\n");
-		else
-			client_rcv = 1;
+		if (rcv_from_Carol)
+		{
+			n = read(sockfd, &msg_from_Carol, sizeof(msg_from_Carol));
+			if (n < 0)
+				printf("ERROR reading from client socket in Alice!\n");
+			else {
+
+				client_rcv = 1;
+				rcv_from_Carol = 0;
+			}
+		}
 	}
 
 	close(sockfd);
