@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
 
 
 	}
-	else if (strcmp(argv[1], ">") == 0)		//Oblivious Multiplication
+	else if (strcmp(argv[1], ">") == 0)		//Oblivious Comparison
 	{
 
 	}
