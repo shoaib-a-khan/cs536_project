@@ -23,9 +23,9 @@ int server(int portno, char op);
 
 struct message
 {
-	int P[100];
+	/*int P[100];
 	int D[100];
-	int len;
+	int len;*/
 	int scalar1;
 	int scalar2;
 	char src;
