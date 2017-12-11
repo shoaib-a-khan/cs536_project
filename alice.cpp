@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
 
 
 	}
-	else if (strcmp(argv[1], ">") == 0)		//Oblivious Comparison
+	else if (strcmp(argv[1], ">") == 0)		//Oblivious Multiplication
 	{
 
 	}
@@ -193,7 +193,7 @@ int server(int portno, char op)
 
 		}
 
-		sleep(1);
+		//sleep(1);
 	}
 	close(newsockfd);
 	close(sockfd);
@@ -251,7 +251,7 @@ void client(char *ip, int portno, char op)
 				rcv_from_Carol = 0;
 			}
 		}
-	}	
+	}
 
 	close(sockfd);
 }
