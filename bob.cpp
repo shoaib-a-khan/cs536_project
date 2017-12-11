@@ -80,13 +80,17 @@ int main(int argc, char* argv[])
 
 		send_to_Alice = 1;	//Signal client thread to send b_1 to Alice
 		send_to_Carol = 1;	//Signal server thread to send b_2 to Carol
+		while(send_to_Alice);
+		while(send_to_Carol);		
 		rcv_from_Alice = 1;	//Signal client thread to rcv a_1 from Alice
+		rcv_from_Carol = 1;	//Signal server thread to rcv r from Carol		
 		while (!client_rcv);	//Waiting to recv a_1 from Alice
+		printf("After client_rcv\n");
 		client_rcv = 0;
 		p1_B = b_1 * msg_from_Alice.scalar1; //computing a_1 b_1
 		p1_B += b_2 * msg_from_Alice.scalar1; //computing a_1 b_1 + a_1 b_2
-		rcv_from_Carol = 1;	//Signal server thread to rcv r from Carol		
 		while (!server_rcv);	//Waiting to rcv r from Carol
+		printf("After server_rcv\n");
 		server_rcv = 0;
 		p1_B += msg_from_Carol.scalar1; //computing a_1 b_1 + a_1 b_2 + r
 
@@ -101,13 +105,17 @@ int main(int argc, char* argv[])
 
 		send_to_Alice = 1;	//Signal client thread to send b_1 to Alice
 		send_to_Carol = 1;	//Signal server thread to send b_2 to Carol
+		while(send_to_Alice);
+		while(send_to_Carol);		
 		rcv_from_Alice = 1;	//Signal client thread to rcv a_1 from Alice
+		rcv_from_Carol = 1;	//Signal server thread to rcv r from Carol		
 		while (!client_rcv);	//Waiting to recv a_1 from Alice
+		printf("After client_rcv\n");
 		client_rcv = 0;
 		p2_B = b_1 * msg_from_Alice.scalar1; //computing a_1 b_1
 		p2_B += b_2 * msg_from_Alice.scalar1; //computing a_1 b_1 + a_1 b_2
-		rcv_from_Carol = 1;	//Signal server thread to rcv r from Carol		
 		while (!server_rcv);	//Waiting to rcv r from Carol
+		printf("After server_rcv\n");
 		server_rcv = 0;
 		p2_B += msg_from_Carol.scalar1; //computing a_1 b_1 + a_1 b_2 + r
 
@@ -163,6 +171,7 @@ int server(int portno, char op)
 	{
 		if (send_to_Carol)
 		{
+			printf("Sending %f to Carol\n", msg_for_Carol.scalar1);
 			n = write(newsockfd, &msg_for_Carol, sizeof(msg_for_Carol));
 			send_to_Carol = 0;
 			if (n < 0)
@@ -171,7 +180,8 @@ int server(int portno, char op)
 		}
 		if (rcv_from_Carol)
 		{
-			n = read(sockfd, &msg_from_Carol, sizeof(msg_from_Carol));
+			n = read(newsockfd, &msg_from_Carol, sizeof(msg_from_Carol));
+			printf("Received %f from Carol\n", msg_from_Carol.scalar1);
 			if (n < 0)
 				printf("ERROR in Bob reading from Alice's socket!\n");
 			else
@@ -217,6 +227,7 @@ void client(char *ip, int portno, char op)
 	{
 		if (send_to_Alice)
 		{
+			printf("Sending %f to Alice\n", msg_for_Alice.scalar1);
 			n = write(sockfd, &msg_for_Alice, sizeof(msg_for_Alice));
 			send_to_Alice = 0;
 			if (n < 0)
@@ -225,6 +236,7 @@ void client(char *ip, int portno, char op)
 		if (rcv_from_Alice)
 		{
 			n = read(sockfd, &msg_from_Alice, sizeof(msg_from_Alice));
+			printf("Receieved %f from Alice\n", msg_from_Alice.scalar1);
 			if (n < 0)
 				printf("ERROR reading from client socket in Bob!\n");
 			else
