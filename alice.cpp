@@ -57,7 +57,6 @@ int main(int argc, char* argv[])
 		y_A = std::atoi(argv[3]);
 		s_A = x_A + y_A;
 		printf("Alice's Share of Sum : %d\n", s_A);
-		return 1;
 	}
 	else if (strcmp(argv[1], "x") == 0)	//Oblivious Multiplication
 	{
@@ -124,8 +123,6 @@ int main(int argc, char* argv[])
 		printf("Alice's Share of Product : %d\n", p_A);
 		terminate_client = 1;
 		terminate_server = 1;
-		return 1;
-
 
 	}
 	else if (strcmp(argv[1], ">=") == 0)
