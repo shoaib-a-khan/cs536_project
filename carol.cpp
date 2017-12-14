@@ -13,8 +13,8 @@ struct message
 	/*int P[100][5];
 	int D[100];
 	int len; */
-	int scalar1;
-	int scalar2;
+	float scalar1;
+	float scalar2;
 	char src;
 	char dest;
 	int state;
@@ -44,6 +44,7 @@ int main(int argc, char* argv[])
 
 	switch (op)
 	{
+<<<<<<< HEAD
 	case 'x': //Carol in multiplication (helper) protocol
 		while (client_done != 1 || server_done != 1);
 		client_done = 0;
@@ -80,6 +81,28 @@ int main(int argc, char* argv[])
 	default:
 		printf("Operation not permitted.\n");
 		return 1;
+=======
+		case 'x': //Carol in multiplication (helper) protocol
+			while(client_done == 0 ||  server_done == 0);
+			client_done = 0;
+			server_done = 0;
+			srand(0);				
+			q_A = rand();
+			q_B = p_A * p_B - q_A;
+			main_done_1 = 1;
+
+			while(client_done == 0 || server_done == 0);
+			client_done = 0;
+			server_done = 0;				
+			q_A = rand();
+			q_B = p_A * p_B - q_A;
+			main_done_2 = 1;
+			break;
+
+		default:
+			printf("Operation not permitted.\n");
+			return 1;
+>>>>>>> dd2315fd73d15d62a365b69ad63770cae8149c79
 	}
 
 	server_thread.join();
@@ -115,6 +138,7 @@ void client(char *ip, int portno, char op)
 	serv_addr.sin_port = htons(portno);
 	if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
 		printf("ERROR connecting");
+<<<<<<< HEAD
 
 	switch (op)
 	{
@@ -150,6 +174,38 @@ void client(char *ip, int portno, char op)
 	default:
 		return;
 
+=======
+	printf("Entering client, with operation %c\n", op);
+	switch(op)
+	{
+		case 'x':
+			printf("In multiplication case of Carol\n"); 
+			/* read b_2 */
+			//bzero(buffer, sizeof(struct message));
+			n = read(sockfd,buffer,sizeof(struct message));
+			printf("Received %f from Bob\n", buffer->scalar1);
+			p_B = buffer->scalar1;
+			client_done = 1;
+			while(!main_done_1);
+			buffer->scalar1 = q_B;
+			printf("Sending %f to Bob\n", buffer->scalar1);
+			n = write(sockfd, buffer, sizeof(struct message));
+
+			//bzero(buffer, sizeof(struct message));
+			n = read(sockfd,buffer,sizeof(struct message));
+			printf("Received %f from Bob\n", buffer->scalar1);
+			p_B = buffer->scalar1;
+			client_done = 1;
+			while(!main_done_2);
+			buffer->scalar1 = q_B;
+			printf("Sending %f to Bob\n", buffer->scalar1);
+			n = write(sockfd, buffer, sizeof(struct message));
+			break;
+			
+		default:
+			return;
+			
+>>>>>>> dd2315fd73d15d62a365b69ad63770cae8149c79
 	}
 
 
@@ -199,6 +255,7 @@ void server(int portno, char op)
 
 	switch (op)
 	{
+<<<<<<< HEAD
 	case 'x':
 		/* read a_2 */
 		//bzero(buffer, sizeof(int));
@@ -230,6 +287,33 @@ void server(int portno, char op)
 
 	default:
 		return;
+=======
+		case 'x': 
+			/* read a_2 */
+			//bzero(buffer, sizeof(int));
+			n = read(newsockfd, buffer,sizeof(struct message));
+			printf("Received %f from Alice\n", buffer->scalar1);
+			p_A = buffer->scalar1;		
+			server_done = 1;	
+			while(!main_done_1);
+			buffer->scalar1 = q_A;
+			printf("Sending %f to Alice\n", buffer->scalar1);
+			n = write(newsockfd, buffer, sizeof(struct message));
+
+			//bzero(buffer, sizeof(int));
+			n = read(newsockfd, buffer,sizeof(struct message));
+			printf("Received %f from Alice\n", buffer->scalar1);
+			p_A = buffer->scalar1;		
+			server_done = 1;	
+			while(!main_done_2);
+			buffer->scalar1 = q_A;
+			printf("Sending %f to Alice\n", buffer->scalar1);
+			n = write(newsockfd, buffer, sizeof(struct message));
+			break;
+
+		default:
+			return;
+>>>>>>> dd2315fd73d15d62a365b69ad63770cae8149c79
 
 	}
 
