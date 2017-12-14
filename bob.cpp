@@ -11,6 +11,7 @@
 float state_B = 0;
 extern float state_A;
 extern float state_C;
+
 int send_to_Alice = 0;	//flag to signal client thread to write to socket
 int send_to_Carol = 0; 	//flag to signal server thread to write to socket
 int rcv_from_Alice = 0;	//flag to signal client thread to read from socket
@@ -21,7 +22,7 @@ int terminate_client = 0; //flag to signal terminate to client thread
 int terminate_server = 0; //flag to signal terminate to server thread
 
 
-						  /* ----------- Subroutine Prototypes -----------*/
+						  
 void client(char *ip, int portno, char op);
 int server(int portno, char op);
 
@@ -54,6 +55,8 @@ int main(int argc, char* argv[])
 	std::thread client_thread(client, ip, ALICE_PORT, argv[1][0]);	//As client to Alice
 
 	if (strcmp(argv[1], "+") == 0)	//Oblivious Addition
+
+
 	{
 		int s_B;
 		x_B = std::atoi(argv[2]);
@@ -62,12 +65,15 @@ int main(int argc, char* argv[])
 		printf("Bob's Share of Sum : %d\n", s_B);
 		return 1;
 	}
+
 	else if (strcmp(argv[1], "x") == 0)	//Oblivious Multiplication
+
 	{
 		int p_B, p1_B, p2_B;
 		x_B = std::atoi(argv[2]);
 		y_B = std::atoi(argv[3]);
 		p_B = x_B * y_B;	//Bob locally computes x"y"
+
 		printf("1. Bob: p_B = %f\n", p_B);
 		printf("1. Bob: x_B = %d\n", x_B);
 		printf("1. Bob: y_B = %d\n", y_B);

@@ -1,6 +1,7 @@
 /* --------------- Alice -----------------------*/
 #include "includes.h"
 
+
 #define ALICE_PORT 1111
 #define CAROL_PORT 2222
 #define BOB_PORT 3333
@@ -42,6 +43,7 @@ struct message
 
 int main(int argc, char* argv[])
 {
+
 	char ip[] = "127.0.0.1";	//localhost
 	int x_A, y_A;
 
@@ -50,7 +52,7 @@ int main(int argc, char* argv[])
 	sleep(5);		//wait 5 seconds for Bob and Carol to go live
 	std::thread client_thread(client, ip, CAROL_PORT, argv[1][0]); //Alice as client to Carol
 
-	if (strcmp(argv[1], "+") == 0)	//Oblivious Addition
+	if (strcmp(argv[1], "+") == 0)		//Oblivious Addition
 	{
 		int s_A;
 		x_A = std::atoi(argv[2]);
@@ -59,7 +61,7 @@ int main(int argc, char* argv[])
 		printf("Alice's Share of Sum : %d\n", s_A);
 		return 1;
 	}
-	else if (strcmp(argv[1], "x") == 0)	//Oblivious Multiplication
+	else if (strcmp(argv[1], "x") == 0)		//Oblivious Multiplication
 	{
 		int p_A, p1_A, p2_A;
 		x_A = std::atoi(argv[2]);
@@ -173,9 +175,7 @@ int main(int argc, char* argv[])
 	server_thread.join();
 	client_thread.join();
 
-
 	return 1;
-
 }
 
 
