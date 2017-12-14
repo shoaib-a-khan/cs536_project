@@ -32,8 +32,8 @@ struct message
 	/*int P[100];
 	int D[100];
 	int len;*/
-	float scalar1 = 0;
-	float scalar2 = 0;
+	int scalar1 = 0;
+	int scalar2 = 0;
 	char src = 'B';
 	char dest = 0;
 	int state = 0;
@@ -64,19 +64,25 @@ int main(int argc, char* argv[])
 	}
 	else if (strcmp(argv[1], "x") == 0)	//Oblivious Multiplication
 	{
-		double p_B, p1_B, p2_B;
+		int p_B, p1_B, p2_B;
 		x_B = std::atoi(argv[2]);
 		y_B = std::atoi(argv[3]);
 		p_B = x_B * y_B;	//Bob locally computes x"y"
+		printf("1. Bob: p_B = %f\n", p_B);
+		printf("1. Bob: x_B = %d\n", x_B);
+		printf("1. Bob: y_B = %d\n", y_B);
 
-							//Preparing to initiate OMHelper to compute x'y"
+		//Preparing to initiate OMHelper to compute x'y"
 		srand(time(NULL));
-		int b_1 = rand();	//Bob randomly splits y"
+		int b_1 = rand() % 1000;	//Bob randomly splits y"
 		int b_2 = y_B - b_1;
 		msg_for_Alice.scalar1 = b_1; 	//Bob prepares b_1 for Alice
 		msg_for_Alice.dest = 'A';
 		msg_for_Carol.scalar1 = b_2;	//Bob prepares b_2 for Carol
 		msg_for_Carol.dest = 'C';
+		printf("2. Bob -> Alice: b_1 = %d\n", msg_for_Alice.scalar1);
+		printf("2. Bob -> Carol: b_2 = %d\n", msg_for_Carol.scalar1);
+
 
 		send_to_Alice = 1;	//Signal client thread to send b_1 to Alice
 		send_to_Carol = 1;	//Signal server thread to send b_2 to Carol
@@ -85,15 +91,16 @@ int main(int argc, char* argv[])
 		client_rcv = 0;
 		p1_B = b_1 * msg_from_Alice.scalar1; //computing a_1 b_1
 		p1_B += b_2 * msg_from_Alice.scalar1; //computing a_1 b_1 + a_1 b_2
+		printf("3. Bob <- Alice: a_1 = %d\n", msg_from_Alice.scalar1);
 		rcv_from_Carol = 1;	//Signal server thread to rcv r from Carol		
 		while (!server_rcv);	//Waiting to rcv r from Carol
 		server_rcv = 0;
 		p1_B += msg_from_Carol.scalar1; //computing a_1 b_1 + a_1 b_2 + r
+		printf("3. Bob <- Carol: r = %d\n", msg_from_Carol.scalar1);
+		//Preparing to initiate OMHelper to compute x"y'
 
-										//Preparing to initiate OMHelper to compute x"y'
-		srand(time(NULL));
-		b_1 = rand();	//Alice randomly splits x'
-		b_2 = y_B - b_1;
+		b_1 = rand() % 1000;	//Bob randomly splits x"
+		b_2 = x_B - b_1;
 		msg_for_Alice.scalar1 = b_1; 	//Bob prepares b_1 for Alice
 		msg_for_Alice.dest = 'A';
 		msg_for_Carol.scalar1 = b_2;	//Bob prepares b_2 for Carol
@@ -111,15 +118,51 @@ int main(int argc, char* argv[])
 		server_rcv = 0;
 		p2_B += msg_from_Carol.scalar1; //computing a_1 b_1 + a_1 b_2 + r
 
-		p_B = p_B + p1_B + p2_B;	//computing p' = x'y' + p_1' + p_2'
-		printf("Bob's Share of Product : %f\n", p_B);
+		p_B = p_B + p1_B + p2_B;	//computing p' = x"y" + p_1" + p_2"
+		printf("Bob's Share of Product : %d\n", p_B);
 		terminate_client = 1;
 		terminate_server = 1;
 		return 1;
 	}
+	else if (strcmp(argv[1], ">=") == 0)
+	{
+		printf("Entered >=\n");
+		int r_1, r_2, sgn, p_B, q_B;
+		rcv_from_Alice = 1;
+		while (!client_rcv);
+		sgn = msg_from_Alice.scalar1;
+		x_B = 2 * std::atoi(argv[2]) * sgn; //Reduction of > to >=
+		y_B = 2 * std::atoi(argv[3]) * sgn; //Reduction of > to >=
 
-	//server_thread.join();	
-	//client_thread.join();
+		srand(time(NULL));
+		r_2 = rand() % 1000;
+		msg_for_Alice.scalar1 = r_2;
+
+		send_to_Alice = 1;
+		while (send_to_Alice);
+		rcv_from_Alice = 1;
+		while (!client_rcv);
+		r_1 = msg_from_Alice.scalar1; // Alice and Bob have agreed on r_1 and r_2
+
+		p_B = r_1 * x_B;
+		q_B = r_1 * y_B;
+
+		msg_for_Carol.scalar1 = p_B;
+		msg_for_Carol.scalar2 = q_B;
+
+		send_to_Carol = 1;
+		while (send_to_Carol);
+		rcv_from_Carol = 1;
+		while (!server_rcv);
+
+		terminate_client = 1;
+		terminate_server = 1;
+		printf("Bob's share of the answer is: %d\n", msg_from_Carol.scalar1);
+
+
+	}
+	server_thread.join();
+	client_thread.join();
 	return 1;
 
 }
@@ -140,6 +183,11 @@ int server(int portno, char op)
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0)
 		printf("ERROR opening server socket in Bob!\n");
+
+	int enable = 1;
+	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+		printf("setsockopt(SO_REUSEADDR) failed");
+
 	bzero((char *)&serv_addr, sizeof(serv_addr));
 	//portno = atoi(argv[1]);
 	serv_addr.sin_family = AF_INET;
@@ -171,7 +219,7 @@ int server(int portno, char op)
 		}
 		if (rcv_from_Carol)
 		{
-			n = read(sockfd, &msg_from_Carol, sizeof(msg_from_Carol));
+			n = read(newsockfd, &msg_from_Carol, sizeof(msg_from_Carol));
 			if (n < 0)
 				printf("ERROR in Bob reading from Alice's socket!\n");
 			else
@@ -182,7 +230,7 @@ int server(int portno, char op)
 
 		}
 
-		sleep(1);
+		//sleep(1);
 	}
 	close(newsockfd);
 	close(sockfd);
