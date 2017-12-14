@@ -84,7 +84,6 @@ int main(int argc, char* argv[])
 
 		send_to_Bob = 1;	//Signal server thread to send a_1 to Bob
 		send_to_Carol = 1;	//Signal client thread to send a_2 to Carol
-<<<<<<< HEAD
 		while (send_to_Bob);	//Waiting to send a_1 to Bob
 		while (send_to_Carol);	//Waiting to send a_2 to Carol
 		rcv_from_Bob = 1;	//Signal server thread to rcv b_1 from Bob
@@ -94,15 +93,6 @@ int main(int argc, char* argv[])
 		p1_A = a_2 * msg_from_Bob.scalar1; //computing a_2 b_1
 		printf("3. Alice <- Bob: b_1 = %d\n", msg_from_Bob.scalar1);
 
-=======
-		while(send_to_Bob);
-		while(send_to_Carol);		
-		rcv_from_Bob = 1;	//Signal server thread to rcv b_1 from Bob
-		rcv_from_Carol = 1;	//Signal client thread to rcv (a_2 b_2 - r) from Carol				
-		while (!server_rcv);	//Waiting to recv b_1 from Bob
-		server_rcv = 0;
-		p1_A = a_2 * msg_from_Bob.scalar1; //computing a_2 b_1
->>>>>>> dd2315fd73d15d62a365b69ad63770cae8149c79
 		while (!client_rcv);	//Waiting to rcv (a_2 b_2 - r) from Carol
 		client_rcv = 0;
 		p1_A += msg_from_Carol.scalar1; //computing a_2 b_1 + a_2 b_2 - r
@@ -119,18 +109,10 @@ int main(int argc, char* argv[])
 
 		send_to_Bob = 1;	//Signal server thread to send a_1 to Bob
 		send_to_Carol = 1;	//Signal client thread to send a_2 to Carol
-<<<<<<< HEAD
 		while (send_to_Bob);	//Waiting to send a_1 to Bob
 		while (send_to_Carol);	//Waiting to send a_2 to Carol
 		rcv_from_Bob = 1;	//Signal server thread to rcv b_1 from Bob
 		rcv_from_Carol = 1;	//Signal client thread to rcv (a_2 b_2 - r) from Carol		
-=======
-		while(send_to_Bob);
-		while(send_to_Carol);
-		printf("After send_to_Bob and send_to_Carol\n");		
-		rcv_from_Bob = 1;	//Signal server thread to rcv b_1 from Bob
-		rcv_from_Carol = 1;	//Signal client thread to rcv (a_2 b_2 - r) from Carol				
->>>>>>> dd2315fd73d15d62a365b69ad63770cae8149c79
 		while (!server_rcv);	//Waiting to recv b_1 from Bob
 		server_rcv = 0;
 		p2_A = a_2 * msg_from_Bob.scalar1; //computing a_2 b_1
@@ -238,7 +220,6 @@ int server(int portno, char op)
 		if (send_to_Bob)
 		{
 			n = write(newsockfd, &msg_for_Bob, sizeof(msg_for_Bob));
-			printf("Sent %f to Bob\n", msg_for_Bob.scalar1);
 			send_to_Bob = 0;
 			if (n < 0)
 				printf("ERROR in Alice writing to Bob's socket!\n");
@@ -246,10 +227,6 @@ int server(int portno, char op)
 		}
 		if (rcv_from_Bob)
 		{
-<<<<<<< HEAD
-=======
-			printf("Received %f from Bob\n", msg_from_Bob.scalar1);
->>>>>>> dd2315fd73d15d62a365b69ad63770cae8149c79
 			n = read(newsockfd, &msg_from_Bob, sizeof(msg_from_Bob));
 			if (n < 0)
 				printf("ERROR in Alice reading from Bob's socket!\n");
@@ -299,22 +276,17 @@ void client(char *ip, int portno, char op)
 		if (send_to_Carol)
 		{
 			n = write(sockfd, &msg_for_Carol, sizeof(msg_for_Carol));
-			printf("Sending %f to Carol\n", msg_for_Carol.scalar1);
 			send_to_Carol = 0;
 			if (n < 0)
 				printf("ERROR writing to client socket in Alice!\n");
-		
 		}
-		if(rcv_from_Carol)
+		if (rcv_from_Carol)
 		{
-			printf("Going in rcv_from_Carol\n");
 			n = read(sockfd, &msg_from_Carol, sizeof(msg_from_Carol));
-			printf("Exited rcv_from_Carol\n");
-			printf("Receieved %f from Carol\n", msg_from_Carol.scalar1);
 			if (n < 0)
 				printf("ERROR reading from client socket in Alice!\n");
-			else
-			{
+			else {
+
 				client_rcv = 1;
 				rcv_from_Carol = 0;
 			}
