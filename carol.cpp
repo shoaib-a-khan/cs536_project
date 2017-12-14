@@ -44,7 +44,6 @@ int main(int argc, char* argv[])
 
 	switch (op)
 	{
-
 	case 'x': //Carol in multiplication (helper) protocol
 		while (client_done != 1 || server_done != 1);
 		client_done = 0;
@@ -80,7 +79,7 @@ int main(int argc, char* argv[])
 		break;
 	default:
 		printf("Operation not permitted.\n");
-		return 1;
+		break;
 	}
 
 	server_thread.join();
@@ -119,7 +118,6 @@ void client(char *ip, int portno, char op)
 
 	switch (op)
 	{
-
 	case 'x':
 		/* read b_2 */
 		//bzero(buffer, sizeof(struct message));
@@ -150,9 +148,14 @@ void client(char *ip, int portno, char op)
 		buffer->scalar2 = 0;
 		n = write(sockfd, buffer, sizeof(struct message));
 	default:
-		return;
+		break;
 
-  }
+	}
+
+
+
+
+
 	close(sockfd);
 }
 
@@ -196,7 +199,6 @@ void server(int portno, char op)
 
 	switch (op)
 	{
-
 	case 'x':
 		/* read a_2 */
 		//bzero(buffer, sizeof(int));
@@ -227,10 +229,9 @@ void server(int portno, char op)
 		n = write(newsockfd, buffer, sizeof(struct message));
 
 	default:
-		return;
+		break;
+
 	}
-  
-  close(newsockfd);
-  close(sockfd);
+
 	return;
 }
