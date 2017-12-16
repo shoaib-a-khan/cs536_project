@@ -1,7 +1,6 @@
 /* --------------- Alice -----------------------*/
 #include "includes.h"
 
-
 #define ALICE_PORT 1111
 #define CAROL_PORT 2222
 #define BOB_PORT 3333
@@ -43,45 +42,49 @@ struct message
 
 int main(int argc, char* argv[])
 {
-
 	char ip[] = "127.0.0.1";	//localhost
 	int x_A, y_A;
 
 	//Establish connections with remote hosts i.e Bob & Carol
 	std::thread server_thread(server, ALICE_PORT, argv[1][0]); //Alice as server to Bob
-	sleep(5);		//wait 5 seconds for Bob and Carol to go live
+	sleep(5);		//wait 7 seconds for Bob and Carol to go live
 	std::thread client_thread(client, ip, CAROL_PORT, argv[1][0]); //Alice as client to Carol
 
-	if (strcmp(argv[1], "+") == 0)		//Oblivious Addition
+	if (strcmp(argv[1], "+") == 0)	//Oblivious Addition
 	{
 		int s_A;
 		x_A = std::atoi(argv[2]);
 		y_A = std::atoi(argv[3]);
 		s_A = x_A + y_A;
-		printf("Alice's Share of Sum : %d\n", s_A);
+		printf("1. Alice's share of x: x' = %d\n", x_A);
+		printf("1. Alice's share of y: y' = %d\n", y_A);
+		printf("\nAlice's Share of Sum : %d\n", s_A);
 	}
-	else if (strcmp(argv[1], "x") == 0)		//Oblivious Multiplication
+	else if (strcmp(argv[1], "x") == 0)	//Oblivious Multiplication
 	{
 		int p_A, p1_A, p2_A;
+		int a_1, a_2;
 		x_A = std::atoi(argv[2]);
 		y_A = std::atoi(argv[3]);
-		p_A = x_A * y_A;	//Alice locally computes x'y'
-		printf("1. Alice: p_A = %d\n", p_A);
-		printf("1. Alice: x_A = %d\n", x_A);
-		printf("1. Alice: y_A = %d\n", y_A);
+		p_A = x_A * y_A;		//Alice locally computes x'y'
+
+		printf("1. Alice's share of x: x' = %d\n", x_A);
+		printf("1. Alice's share of y: y' = %d\n", y_A);
+		printf("1. Alice locally computes x'y'=%d\n", p_A);
+
 		//Preparing to initiate OMHelper to compute x'y"
 		srand(time(NULL));
-		int a_1 = rand() % 1000;	//Alice randomly splits x'
-		int a_2 = x_A - a_1;
-		printf("2. a_1 = %d\n", a_1);
-		printf("2. a_2 = %d\n", a_2);
+		a_1 = rand() % 1000;	//Alice randomly splits x'
+		a_2 = x_A - a_1;
 		msg_for_Bob.scalar1 = a_1; 	//Alice prepares a_1 for Bob
 		msg_for_Bob.dest = 'B';
 		msg_for_Carol.scalar1 = a_2;	//Alice prepares a_2 for Carol
 		msg_for_Carol.dest = 'C';
-		printf("2. Alice -> Bob: a_1 = %d\n", msg_for_Bob.scalar1);
-		printf("2. Alice -> Carol: a_2 = %d\n", msg_for_Carol.scalar1);
 
+		printf("2. Preparing to initate OMHelper to compute x'y\"\n");
+		printf("2. Alice randomly splits x'(=%d)to: a_1(=%d) + a_2(=%d)\n", x_A, a_1, a_2);
+		printf("2. Alice ---> Bob: a_1 = %d\n", msg_for_Bob.scalar1);
+		printf("2. Alice ---> Carol: a_2 = %d\n", msg_for_Carol.scalar1);
 
 		send_to_Bob = 1;	//Signal server thread to send a_1 to Bob
 		send_to_Carol = 1;	//Signal client thread to send a_2 to Carol
@@ -92,12 +95,13 @@ int main(int argc, char* argv[])
 		while (!server_rcv);	//Waiting to recv b_1 from Bob
 		server_rcv = 0;
 		p1_A = a_2 * msg_from_Bob.scalar1; //computing a_2 b_1
-		printf("3. Alice <- Bob: b_1 = %d\n", msg_from_Bob.scalar1);
-
 		while (!client_rcv);	//Waiting to rcv (a_2 b_2 - r) from Carol
 		client_rcv = 0;
 		p1_A += msg_from_Carol.scalar1; //computing a_2 b_1 + a_2 b_2 - r
-		printf("3. Alice <- Carol: (a_2 b_2 - r) = %d\n", msg_from_Carol.scalar1);
+
+		printf("3. Alice <--- Bob: b_1 = %d\n", msg_from_Bob.scalar1);
+		printf("3. Alice <--- Carol: (a_2 b_2 - r) = %d\n", msg_from_Carol.scalar1);
+		printf("3. Alice computes her share of x'y\": p_1' = a_2 b_1 + a_2 b_2 -r = %d \n", p1_A);
 
 		//Preparing to initiate OMHelper to compute x"y'
 
@@ -107,6 +111,11 @@ int main(int argc, char* argv[])
 		msg_for_Bob.dest = 'B';
 		msg_for_Carol.scalar1 = a_2;	//Alice prepares a_2 for Carol
 		msg_for_Carol.dest = 'C';
+
+		printf("4. Preparing to initate OMHelper to compute x\"y'\n");
+		printf("4. Alice randomly splits y'(=%d)to: a_1(=%d) + a_2(=%d)\n", y_A, a_1, a_2);
+		printf("4. Alice ---> Bob: a_1 = %d\n", msg_for_Bob.scalar1);
+		printf("4. Alice ---> Carol: a_2 = %d\n", msg_for_Carol.scalar1);
 
 		send_to_Bob = 1;	//Signal server thread to send a_1 to Bob
 		send_to_Carol = 1;	//Signal client thread to send a_2 to Carol
@@ -121,8 +130,12 @@ int main(int argc, char* argv[])
 		client_rcv = 0;
 		p2_A += msg_from_Carol.scalar1; //computing a_2 b_1 + a_2 b_2 - r
 
+		printf("5. Alice <--- Bob: b_1 = %d\n", msg_from_Bob.scalar1);
+		printf("5. Alice <--- Carol: (a_2 b_2 - r) = %d\n", msg_from_Carol.scalar1);
+		printf("5. Alice computes her share of x\"y': p_2' = a_2 b_1 + a_2 b_2 -r = %d \n", p2_A);
+
 		p_A = p_A + p1_A + p2_A;	//computing p' = x'y' + p_1' + p_2'
-		printf("Alice's Share of Product : %d\n", p_A);
+		printf("\n=> Alice's Share of the Final Product = %d\n", p_A);
 		terminate_client = 1;
 		terminate_server = 1;
 
@@ -166,13 +179,12 @@ int main(int argc, char* argv[])
 		printf("Alice's share of the answer is: %d\n", msg_from_Carol.scalar1);
 
 	}
-	//std::thread server_thread(server, ALICE_PORT); //Alice as server to Bob
-	//sleep(5);		//wait 5 seconds for Bob and Carol to go live
-	//std::thread client_thread(client, ip, CAROL_PORT); //Alice as client to Carol
 	server_thread.join();
 	client_thread.join();
 
+
 	return 1;
+
 }
 
 
