@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
 
 	//Establish connections with remote hosts i.e Bob & Carol
 	std::thread server_thread(server, BOB_PORT, argv[1][0]);	//As server to Carol
-	sleep(5);		//wait 5 seconds for Alice & Carol to go live
+	sleep(5);		//wait 7 seconds for Alice & Carol to go live
 	std::thread client_thread(client, ip, ALICE_PORT, argv[1][0]);	//As client to Alice
 
 	if (strcmp(argv[1], "+") == 0)	//Oblivious Addition
@@ -59,7 +59,9 @@ int main(int argc, char* argv[])
 		x_B = std::atoi(argv[2]);
 		y_B = std::atoi(argv[3]);
 		s_B = x_B + y_B;
-		printf("Bob's Share of Sum : %d\n", s_B);
+		printf("1. Bob's share of x: x\" = %d\n", x_B);
+		printf("1. Bob's share of y: y\" = %d\n", y_B);
+		printf("\nBob's Share of Sum : %d\n", s_B);
 	}
 	else if (strcmp(argv[1], "x") == 0)	//Oblivious Multiplication
 	{
@@ -67,9 +69,9 @@ int main(int argc, char* argv[])
 		x_B = std::atoi(argv[2]);
 		y_B = std::atoi(argv[3]);
 		p_B = x_B * y_B;	//Bob locally computes x"y"
-		printf("1. Bob: p_B = %d\n", p_B);
-		printf("1. Bob: x_B = %d\n", x_B);
-		printf("1. Bob: y_B = %d\n", y_B);
+		printf("1. Bob's share of x: x\" = %d\n", x_B);
+		printf("1. Bob's share of y: y\" = %d\n", y_B);
+		printf("1. Bob locally computes x\"y\"=%d\n", p_B);
 
 		//Preparing to initiate OMHelper to compute x'y"
 		srand(time(NULL));
@@ -79,9 +81,11 @@ int main(int argc, char* argv[])
 		msg_for_Alice.dest = 'A';
 		msg_for_Carol.scalar1 = b_2;	//Bob prepares b_2 for Carol
 		msg_for_Carol.dest = 'C';
-		printf("2. Bob -> Alice: b_1 = %d\n", msg_for_Alice.scalar1);
-		printf("2. Bob -> Carol: b_2 = %d\n", msg_for_Carol.scalar1);
 
+		printf("2. Preparing to initate OMHelper to compute x'y\"\n");
+		printf("2. Bob randomly splits y\"(=%d)to: b_1(=%d) + b_2(=%d)\n", y_B, b_1, b_2);
+		printf("2. Bob ---> Alice: b_1 = %d\n", msg_for_Alice.scalar1);
+		printf("2. Bob ---> Carol: b_2 = %d\n", msg_for_Carol.scalar1);
 
 		send_to_Alice = 1;	//Signal client thread to send b_1 to Alice
 		send_to_Carol = 1;	//Signal server thread to send b_2 to Carol
@@ -90,12 +94,16 @@ int main(int argc, char* argv[])
 		client_rcv = 0;
 		p1_B = b_1 * msg_from_Alice.scalar1; //computing a_1 b_1
 		p1_B += b_2 * msg_from_Alice.scalar1; //computing a_1 b_1 + a_1 b_2
-		printf("3. Bob <- Alice: a_1 = %d\n", msg_from_Alice.scalar1);
 		rcv_from_Carol = 1;	//Signal server thread to rcv r from Carol		
 		while (!server_rcv);	//Waiting to rcv r from Carol
 		server_rcv = 0;
 		p1_B += msg_from_Carol.scalar1; //computing a_1 b_1 + a_1 b_2 + r
-		printf("3. Bob <- Carol: r = %d\n", msg_from_Carol.scalar1);
+
+		printf("3. Bob <--- Alice: a_1 = %d\n", msg_from_Alice.scalar1);
+		printf("3. Bob <--- Carol: r = %d\n", msg_from_Carol.scalar1);
+		printf("3. Bob computes his share of x'y\": p_1\" = a_1 b_1 + a_1 b_2 +r = %d \n", p1_B);
+
+
 		//Preparing to initiate OMHelper to compute x"y'
 
 		b_1 = rand() % 1000;	//Bob randomly splits x"
@@ -104,6 +112,11 @@ int main(int argc, char* argv[])
 		msg_for_Alice.dest = 'A';
 		msg_for_Carol.scalar1 = b_2;	//Bob prepares b_2 for Carol
 		msg_for_Carol.dest = 'C';
+
+		printf("4. Preparing to initate OMHelper to compute x\"y'\n");
+		printf("4. Bobb randomly splits x\"(=%d)to: b_1(=%d) + b_2(=%d)\n", x_B, b_1, b_2);
+		printf("4. Bob ---> Alice: b_1 = %d\n", msg_for_Alice.scalar1);
+		printf("4. Bob ---> Carol: b_2 = %d\n", msg_for_Carol.scalar1);
 
 		send_to_Alice = 1;	//Signal client thread to send b_1 to Alice
 		send_to_Carol = 1;	//Signal server thread to send b_2 to Carol
@@ -117,8 +130,12 @@ int main(int argc, char* argv[])
 		server_rcv = 0;
 		p2_B += msg_from_Carol.scalar1; //computing a_1 b_1 + a_1 b_2 + r
 
+		printf("5. Bob <--- Alice: a_1 = %d\n", msg_from_Alice.scalar1);
+		printf("5. Bob <--- Carol: r = %d\n", msg_from_Carol.scalar1);
+		printf("5. Bob computes his share of x\"y': p_2\" = a_1 b_1 + a_1 b_2 +r = %d \n", p2_B);
+
 		p_B = p_B + p1_B + p2_B;	//computing p' = x"y" + p_1" + p_2"
-		printf("Bob's Share of Product : %d\n", p_B);
+		printf("\n=> Bob's Share of the Final Product : %d\n", p_B);
 		terminate_client = 1;
 		terminate_server = 1;
 	}
